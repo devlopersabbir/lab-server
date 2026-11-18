@@ -9,5 +9,7 @@ COPY . .
 
 RUN mkdir -p uploads
 
+LABEL org.opencontainers.image.source="https://github.com/devlopersabbir/lab-server"
+
 EXPOSE 5000
 CMD ["npm", "start"]
