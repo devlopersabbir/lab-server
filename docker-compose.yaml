@@ -1,7 +1,6 @@
 services:
   app:
-    image: node-server:latest
-    build: .
+    image: ghcr.io/devlopersabbir/lab-server:latest
     container_name: node-server
     ports:
       - "5000:5000"
