@@ -1,0 +1,10 @@
+services:
+  app:
+    image: node-server:latest
+    build: .
+    container_name: node-server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+    restart: unless-stopped

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload & Retrieve</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #333;
+    }
+    .box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #fafafa;
+    }
+    input[type="file"], input[type="text"] {
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h2>File Server Demo</h2>
+
+  <!-- 1. Upload Form -->
+  <div class="box">
+    <h3>Upload File</h3>
+    <input type="file" id="fileInput" />
+    <br>
+    <button onclick="uploadFile()">Upload</button>
+  </div>
+
+  <!-- 2. Retrieve Files -->
+  <div class="box">
+    <h3>Retrieve Files</h3>
+    <input type="text" id="dirInput" placeholder="Filename (optional, leave blank to list all as JSON)" />
+    <br>
+    <button onclick="retrieveFiles()">Retrieve</button>
+  </div>
+
+  <!-- Output Display -->
+  <div class="box">
+    <h3>Response</h3>
+    <pre id="output">Responses will appear here...</pre>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:5000";
+
+    const output = document.getElementById("output");
+
+    async function uploadFile() {
+      const fileInput = document.getElementById("fileInput");
+      if (!fileInput.files.length) {
+        output.textContent = "Please select a file first.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      output.textContent = "Uploading...";
+      try {
+        const res = await fetch(`${API_URL}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          output.textContent = `Status ${res.status}:\n` + JSON.stringify(data, null, 2);
+        } catch {
+          output.textContent = `Server returned status ${res.status} (${res.statusText}):\n${text || "(empty response)"}`;
+        }
+      } catch (err) {
+        output.textContent = "Upload failed: " + err.message;
+      }
+    }
+
+    async function retrieveFiles() {
+      const fileName = document.getElementById("dirInput").value.trim();
+
+      // If a filename is specified, open/download it directly
+      if (fileName) {
+        window.open(`${API_URL}/retrieve?filename=${encodeURIComponent(fileName)}`, "_blank");
+        output.textContent = `Opening/Downloading: ${fileName}`;
+        return;
+      }
+
+      // Without query: returns JSON list of files
+      output.textContent = "Retrieving files...";
+      try {
+        const res = await fetch(`${API_URL}/retrieve`);
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          output.textContent = `Status ${res.status}:\n` + JSON.stringify(data, null, 2);
+        } catch {
+          output.textContent = `Server returned status ${res.status} (${res.statusText}):\n${text || "(empty response)"}`;
+        }
+      } catch (err) {
+        output.textContent = "Retrieve failed: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
